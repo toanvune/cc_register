@@ -31,17 +31,56 @@ window.__require = function e(t, n, r) {
     "use strict";
     cc._RF.pop();
   }, {} ],
+  ToggleHandle: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "b9a45njy4xPD7xRedBE+yuP", "ToggleHandle");
+    "use strict";
+    var selectedUser = require("selectedUser");
+    var User = cc.Class({
+      id: "",
+      username: "",
+      password: "",
+      phone: "",
+      ctor: function ctor() {
+        this.username = "";
+        this.password = "";
+        this.phone = "";
+      }
+    });
+    cc.Class({
+      extends: cc.Component,
+      properties: {},
+      start: function start() {},
+      onSelected: function onSelected(toggle) {
+        var user = new User();
+        user = toggle.user;
+        toggle.isChecked ? this.addSelectedUser(user) : this.removeSelectedUser(user);
+      },
+      addSelectedUser: function addSelectedUser(user) {
+        selectedUser.push(user);
+        return selectedUser;
+      },
+      removeSelectedUser: function removeSelectedUser(user) {
+        var index = selectedUser.indexOf(user);
+        selectedUser.splice(index, 1);
+        return selectedUser;
+      }
+    });
+    cc._RF.pop();
+  }, {
+    selectedUser: "selectedUser"
+  } ],
   deleteController: [ function(require, module, exports) {
     "use strict";
     cc._RF.push(module, "e685ew6YxRO5YV9ru5z8IeT", "deleteController");
     "use strict";
+    var selectedUser = require("selectedUser");
     var data = JSON.parse(cc.sys.localStorage.getItem("users"));
     cc.Class({
       extends: cc.Component,
       properties: {
         scrollView: cc.ScrollView,
         btnDelete: cc.Button,
-        toggle: cc.Toggle,
         layout_item: cc.Layout,
         lblItem: cc.Label,
         parentItem: cc.Layout,
@@ -52,6 +91,8 @@ window.__require = function e(t, n, r) {
         this.hideOrShowBtnDelete(false);
       },
       start: function start() {
+        selectedUser.length > 0 ? this.onOrOffBtn(true) : this.onOrOffBtn(false);
+        this.btnDelete.node.on("mousedown", this.onClickDelete, this);
         if (null != data) {
           this.renderAllUser();
           this.onOrOffBtn(false);
@@ -59,16 +100,16 @@ window.__require = function e(t, n, r) {
       },
       renderAllUser: function renderAllUser() {
         var _this = this;
-        data.forEach(function(user, index) {
-          cc.log(_this.renderUser(user, index));
+        data.forEach(function(user) {
+          cc.log(_this.renderUser(user));
         });
       },
-      renderUser: function renderUser(user, index) {
+      renderUser: function renderUser(user) {
         var item = cc.instantiate(this.prefab_item);
-        item.name = "pre " + index + 1;
         item.parent = this.parentItem.node;
         item.children[1].getComponent("cc.Label").string = user.username;
         item.children[0].getComponent("cc.Toggle").isChecked = false;
+        item.children[0].getComponent("cc.Toggle").user = user;
         return item;
       },
       hideOrShowListUser: function hideOrShowListUser(value) {
@@ -80,6 +121,20 @@ window.__require = function e(t, n, r) {
       onOrOffBtn: function onOrOffBtn(value) {
         this.btnDelete.interactable = value;
       },
+      onClickDelete: function onClickDelete() {
+        this.deleteExecute();
+        cc.sys.localStorage.setItem("users", JSON.stringify(data));
+      },
+      deleteExecute: function deleteExecute() {
+        data = data.filter(function(_ref) {
+          var id1 = _ref.id;
+          return !selectedUser.some(function(_ref2) {
+            var id2 = _ref2.id;
+            return id2 === id1;
+          });
+        });
+        return data;
+      },
       update: function update(dt) {
         data = JSON.parse(cc.sys.localStorage.getItem("users"));
         if (null != data) {
@@ -89,15 +144,17 @@ window.__require = function e(t, n, r) {
           this.hideOrShowListUser(false);
           this.hideOrShowBtnDelete(false);
         }
+        selectedUser.length > 0 ? this.onOrOffBtn(true) : this.onOrOffBtn(false);
       }
     });
     cc._RF.pop();
-  }, {} ],
+  }, {
+    selectedUser: "selectedUser"
+  } ],
   registerController: [ function(require, module, exports) {
     "use strict";
     cc._RF.push(module, "714c2ROQjVGSIHECsAuVARs", "registerController");
     "use strict";
-    var deleteController = require("deleteController");
     var User = cc.Class({
       id: "",
       username: "",
@@ -151,7 +208,13 @@ window.__require = function e(t, n, r) {
       }
     });
     cc._RF.pop();
-  }, {
-    deleteController: "deleteController"
-  } ]
-}, {}, [ "HelloWorld", "deleteController", "registerController" ]);
+  }, {} ],
+  selectedUser: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "c87d3gCk05EiZwV5Tv3WHaP", "selectedUser");
+    "use strict";
+    var selectedUser = [];
+    module.exports = selectedUser;
+    cc._RF.pop();
+  }, {} ]
+}, {}, [ "HelloWorld", "ToggleHandle", "deleteController", "registerController", "selectedUser" ]);
